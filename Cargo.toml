@@ -6,16 +6,32 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bootloader = "0.9.19"
+bootloader = {version = "0.9.19", features = ["map_physical_memory"]}
 volatile = "0.2.6"
 lazy_static = {version = "1.4.0", features = ["spin_no_std"]}
 spin = "0.9.2"
 x86_64 = "0.14.6"
 uart_16550 = "0.2.15"
 pic8259 = "0.10.2"
+pc-keyboard = "0.5.0"
+linked_list_allocator = "0.9.0"
+
+[dependencies.crossbeam-queue]
+version = "0.3.2"
+default-features = false
+features = ["alloc"]
+
+[dependencies.conquer-once]
+version = "0.3.2"
+default-features = false
+
+[dependencies.futures-util]
+version = "0.3.4"
+default-features = false
+features = ["alloc"]
 
 [package.metadata.bootimage]
-run-command = ["C:\\Program Files\\qemu\\qemu-system-x86_64.exe", "-drive", "format=raw,file={}"]
+run-command = ["C:\\Program Files\\qemu\\qemu-system-x86_64.exe","-m","1000","-drive", "format=raw,file={}"]
 test-args = [
     "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio",
     "-display", "none"
@@ -30,3 +46,17 @@ harness = false
 [[test]]
 name = "stack_overflow"
 harness = false
+
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+panic = "abort"
+codegen-units = 1
+debug = 0
+incremental = true
+[profile.release.package."*"]
+opt-level = 3
+codegen-units = 1
+debug = 0
+incremental =  true

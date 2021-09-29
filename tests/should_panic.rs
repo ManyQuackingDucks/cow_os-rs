@@ -15,6 +15,7 @@ pub extern "C" fn _start() -> ! {
 
 fn should_fail() {
     serial_print!("should_panic::should_fail...\t");
+    assert_eq!(1, 0)
 }
 
 #[panic_handler]
