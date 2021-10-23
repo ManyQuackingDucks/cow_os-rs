@@ -63,8 +63,7 @@ fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Opt
         let table = unsafe { &*table_ptr };
 
         // read the page table entry and update `frame`
-        let entry = &table[index];
-        frame = match entry.frame() {
+        frame = match table[index].frame() {
             Ok(frame) => frame,
             Err(FrameError::FrameNotPresent) => return None,
             Err(FrameError::HugeFrame) => panic!("huge pages not supported"),

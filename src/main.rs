@@ -2,6 +2,8 @@
 #![no_main] // disable all Rust-level entry points
 #![feature(custom_test_frameworks)]
 #![test_runner(cow_os::test_runner)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
 #![reexport_test_harness_main = "test_main"]
 mod serial;
 mod vga_buffer; //Handles display
@@ -37,7 +39,7 @@ pub fn command_line_logo() {
     \ \_____\\ \_____\\ \__/".~\_\    \ \_____\\/\_____\ 
      \/_____/ \/_____/ \/_/   \/_/     \/_____/ \_____/
    "#
-    )
+    );
 }
 //Entrance
 entry_point!(kernel_entr);
