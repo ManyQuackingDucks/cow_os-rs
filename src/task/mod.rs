@@ -4,7 +4,6 @@ use core::{future::Future, pin::Pin};
 extern crate alloc;
 use alloc::boxed::Box;
 pub mod executor;
-pub mod frame_counter;
 pub mod keyboard;
 pub mod simple_executor;
 

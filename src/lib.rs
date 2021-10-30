@@ -8,6 +8,7 @@
 #![feature(alloc_error_handler)]
 #![feature(const_mut_refs)]
 extern crate alloc;
+use alloc::collections::*;
 use alloc::collections::BTreeMap;
 #[allow(unused_imports)]
 use bootloader::{entry_point, BootInfo};
@@ -21,7 +22,6 @@ pub mod memory;
 pub mod serial;
 pub mod task;
 pub mod vga_buffer;
-
 lazy_static! {
     pub static ref GLOBALS: Mutex<BTreeMap<&'static str, &'static str>> = Mutex::new({
         let mut m = BTreeMap::new();
@@ -32,7 +32,6 @@ lazy_static! {
         m.insert("PrintOnTimerInt","False");
         m
     });
-    pub static ref FRAMECOUNTER: Mutex<u8> = Mutex::new(0);
 }
 
 

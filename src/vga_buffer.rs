@@ -6,6 +6,11 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
 
+const DEFAULT_WRITER_COLOR: Color = Color::Red;
+const DEFAULT_BACKGROUND_COLOR: Color = Color::Blue;
+const BUFFER_HEIGHT: usize = 25;
+const BUFFER_WIDTH: usize = 80;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -45,9 +50,6 @@ struct ScreenChar {
     color_code: ColorCode,
 }
 
-const BUFFER_HEIGHT: usize = 25;
-const BUFFER_WIDTH: usize = 80;
-
 struct Buffer {
     chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
@@ -79,6 +81,18 @@ impl Writer {
             }
         }
     }
+
+    pub fn write_string(&mut self, s: &str) {
+        for byte in s.bytes() {
+            match byte {
+                // printable ASCII byte or newline
+                0x20..=0x7e | b'\n' => self.write_byte(byte),
+                // not part of printable ASCII range
+                _ => self.write_byte(0xfe),
+            }
+        }
+    }
+
     fn new_line(&mut self) {
         for row in 1..BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
@@ -89,7 +103,6 @@ impl Writer {
         self.clear_row(BUFFER_HEIGHT - 1);
         self.column_position = 0;
     }
-
     fn clear_row(&mut self, row: usize) {
         let blank = ScreenChar {
             ascii_character: b' ',
@@ -97,18 +110,6 @@ impl Writer {
         };
         for col in 0..BUFFER_WIDTH {
             self.buffer.chars[row][col].write(blank);
-        }
-    }
-}
-impl Writer {
-    pub fn write_string(&mut self, s: &str) {
-        for byte in s.bytes() {
-            match byte {
-                // printable ASCII byte or newline
-                0x20..=0x7e | b'\n' => self.write_byte(byte),
-                // not part of printable ASCII range
-                _ => self.write_byte(0xfe),
-            }
         }
     }
 }
@@ -123,7 +124,7 @@ impl fmt::Write for Writer {
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
+        color_code: ColorCode::new(DEFAULT_WRITER_COLOR, DEFAULT_BACKGROUND_COLOR),
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     });
 }
@@ -146,6 +147,17 @@ pub fn _print(args: fmt::Arguments) {
 
     interrupts::without_interrupts(|| {
         WRITER.lock().write_fmt(args).unwrap();
+    });
+}
+
+#[allow(dead_code)]
+pub fn clear(){
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        let mut writer = WRITER.lock();
+        for i in 0..BUFFER_HEIGHT{
+            writer.clear_row(i);
+        }
     });
 }
 
